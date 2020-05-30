@@ -68,21 +68,6 @@ main = runHalogenAff do
             -- error message from server
             Left response.body
 
-loading :: forall q i o. H.Component HH.HTML q i o Aff
-loading = Hooks.component \_ _ -> Hooks.do
-  state /\ stateId <- Hooks.useState 0
-  Hooks.useLifecycleEffect do
-    id <- Hooks.fork do
-      void $ liftAff do
-        delay (Milliseconds 333.0)
-      Hooks.modify_ stateId (\s -> if s == 3 then 0 else s + 1)
-    pure $ Just do
-      Hooks.kill id
-
-  Hooks.pure $
-    HH.h1_
-      [ HH.text $ "Loading" <> (power "." state) ]
-
 displayError :: forall q o. H.Component HH.HTML q String o Aff
 displayError = Hooks.component \_ errorMessage -> Hooks.do
   Hooks.pure $
