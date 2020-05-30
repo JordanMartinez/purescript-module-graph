@@ -23,6 +23,9 @@ import Halogen.Aff (awaitBody, runHalogenAff)
 import Halogen.HTML as HH
 import Halogen.Hooks as Hooks
 import Halogen.VDom.Driver (runUI)
+import Routing.Duplex (print)
+import Shared.BaseUrl (baseUrl)
+import Shared.Routes (Route(..), serverRoutes)
 import Text.Parsing.StringParser (ParseError(..), unParser)
 
 main :: Effect Unit
@@ -38,7 +41,12 @@ main = runHalogenAff do
     both body parseResults = { body, parseResults }
 
     getGraphFile = do
-      reqResult <- AX.request (AX.defaultRequest { url = "http://localhost:3000/api/graphFile", method = Left GET, responseFormat = AXRF.string })
+      reqResult <- AX.request $ AX.defaultRequest
+        { url = baseUrl <> print serverRoutes GraphFile
+        , method = Left GET
+        , responseFormat = AXRF.string
+        }
+
       pure $ case reqResult of
         Left err -> Left $
           "GET http://localhost:3000/ response failed to decode: " <> AX.printError err

@@ -13,13 +13,16 @@ import Network.Wai (Application, Request(..), responseFile, responseStr)
 import Network.Warp.Run (runSettings)
 import Network.Warp.Settings (defaultSettings)
 import Routing.Duplex (parse)
+import Shared.BaseUrl (baseUrl, port)
 import Shared.Routes (Route(..), serverRoutes)
 
 main :: Effect Unit
 main = do
-  let beforeMainLoop = do
-        log $ "Open file via http://localhost:" <> show defaultSettings.port
-  void $ runSettings defaultSettings { beforeMainLoop = beforeMainLoop } app
+  let settings = defaultSettings
+        { beforeMainLoop = log $ "Open file via " <> baseUrl
+        , port = port
+        }
+  void $ runSettings settings app
 
 app :: Application
 app (Request req) f = case parse serverRoutes req.rawPathInfo of
