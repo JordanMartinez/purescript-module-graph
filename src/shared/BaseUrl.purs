@@ -1,4 +1,4 @@
-module Shared.BaseUrl where
+module Shared.Config where
 
 import Data.Show (show)
 import Data.Semigroup ((<>))

@@ -13,7 +13,7 @@ import Network.Wai (Application, Request(..), responseFile, responseStr)
 import Network.Warp.Run (runSettings)
 import Network.Warp.Settings (defaultSettings)
 import Routing.Duplex (parse)
-import Shared.BaseUrl (baseUrl, port)
+import Shared.Config (baseUrl, port)
 import Shared.Routes (Route(..), serverRoutes)
 
 main :: Effect Unit

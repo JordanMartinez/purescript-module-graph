@@ -24,7 +24,7 @@ import Halogen.HTML as HH
 import Halogen.Hooks as Hooks
 import Halogen.VDom.Driver (runUI)
 import Routing.Duplex (print)
-import Shared.BaseUrl (baseUrl)
+import Shared.Config (baseUrl)
 import Shared.Routes (Route(..), serverRoutes)
 import Text.Parsing.StringParser (ParseError(..), unParser)
 
