@@ -49,7 +49,7 @@ main = runHalogenAff do
 
       pure $ case reqResult of
         Left err -> Left $
-          "GET http://localhost:3000/ response failed to decode: " <> AX.printError err
+          "GET response failed to decode: " <> AX.printError err
         Right response -> do
           let text = response.body
           case unParser pursGraphOutputParser { pos: 0, str: response.body } of
