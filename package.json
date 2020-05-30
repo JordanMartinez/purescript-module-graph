@@ -6,7 +6,7 @@
   "scripts": {
     "client:build": "spago -x client.dhall build",
     "client:build-watch": "spago -x client.dhall build -w",
-    "client:run": "spago -x client.dhall bundle-app --main Client.Main --to dist/app.js",
+    "client:run": "spago -x client.dhall bundle-app --main Client.Main --to dist/client/app.js",
     "client:run-watch": "spago -x client.dhall bundle-app -w --main Client.Main --to dist/client/app.js",
     "server:build": "spago -x server.dhall build",
     "server:run": "spago -x server.dhall run -m Server.Main",
