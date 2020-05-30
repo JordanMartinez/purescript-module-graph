@@ -10,3 +10,4 @@
 /.spago
 /dist/client/app.js
 /dist/server/index.js
+module-graph.json
