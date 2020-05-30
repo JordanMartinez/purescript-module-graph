@@ -11,6 +11,7 @@ You can edit this file as you like.
   , "halogen-svg"
   , "http-methods"
   , "psci-support"
+  , "routing-duplex"
   , "string-parsers"
   ]
 , packages = ./packages.dhall
