@@ -8,6 +8,5 @@
 /.purs*
 /.psa*
 /.spago
-/dist/client/app.js
-/dist/server/index.js
+/dist/app.js
 module-graph.json

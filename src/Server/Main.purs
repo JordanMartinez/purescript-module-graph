@@ -30,8 +30,8 @@ app (Request req) f = case parse serverRoutes req.rawPathInfo of
     f $ responseStr status404 [(hContentType /\ "text/plain")] "File not found."
   Right route -> case route of
     Home -> do
-      f $ responseFile status200 [(hContentType /\ "text/html")] "./dist/client/index.html" Nothing
+      f $ responseFile status200 [(hContentType /\ "text/html")] "./dist/index.html" Nothing
     HalogenFile -> do
-      f $ responseFile status200 [(hContentType /\ "text/javascript")] "./dist/client/app.js" Nothing
+      f $ responseFile status200 [(hContentType /\ "text/javascript")] "./dist/app.js" Nothing
     GraphFile -> do
       f $ responseFile status200 [(hContentType /\ "text/plain")] "./module-graph.json" Nothing
