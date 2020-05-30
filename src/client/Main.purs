@@ -27,11 +27,19 @@ import Text.Parsing.StringParser (ParseError(..), unParser)
 
 main :: Effect Unit
 main = runHalogenAff do
-  body <- awaitBody
-  loadingIO <- runUI loading unit body
+  { body, parseResults } <- both <$> awaitBody <*> getGraphFile
+  case parseResults of
+    Left errorMessage -> do
+      runUI displayError errorMessage body
+    Right fileContent -> do
+      runUI displayGraph fileContent body
 
-  reqResult <- AX.request (AX.defaultRequest { url = "http://localhost:3000/api/graphFile", method = Left GET, responseFormat = AXRF.string })
-  let parseResults = case reqResult of
+  where
+    both body parseResults = { body, parseResults }
+
+    getGraphFile = do
+      reqResult <- AX.request (AX.defaultRequest { url = "http://localhost:3000/api/graphFile", method = Left GET, responseFormat = AXRF.string })
+      pure $ case reqResult of
         Left err -> Left $
           "GET http://localhost:3000/ response failed to decode: " <> AX.printError err
         Right response -> do
@@ -44,13 +52,6 @@ main = runHalogenAff do
               "\nPrev 30 characters: `" <> (take 30 (drop (parseError.pos - 30) text)) <> "`\n\
               \nNext 30 characters: `" <> (take 30 (drop parseError.pos text)) <> "`"
             Right parseResult -> Right parseResult.result
-
-  loadingIO.dispose
-  case parseResults of
-    Left errorMessage -> do
-      runUI displayError errorMessage body
-    Right fileContent -> do
-      runUI displayGraph fileContent body
 
 
 loading :: forall q i o. H.Component HH.HTML q i o Aff
