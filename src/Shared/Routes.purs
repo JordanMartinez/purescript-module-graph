@@ -11,6 +11,7 @@ data Route
   | HalogenFile
   | GraphFile
 
+derive instance eqRoute :: Eq Route
 derive instance genericRoute :: Generic Route _
 
 serverRoutes :: RouteDuplex' Route
