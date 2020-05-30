@@ -4,6 +4,7 @@ import Prelude
 
 import Affjax as AX
 import Affjax.ResponseFormat as AXRF
+import Affjax.StatusCode (StatusCode(..))
 import Client.Parser (Dependency(..), Module(..), ModuleInfo(..), Path(..), pursGraphOutputParser)
 import Data.Array (cons, foldl)
 import Data.Either (Either(..))
@@ -49,18 +50,23 @@ main = runHalogenAff do
 
       pure $ case reqResult of
         Left err -> Left $
-          "GET response failed to decode: " <> AX.printError err
-        Right response -> do
-          let text = response.body
-          case unParser pursGraphOutputParser { pos: 0, str: response.body } of
-            Left parseError -> Left $
-              "Text parsed so far: `" <> take parseError.pos text <> "`\n\n\
-              \Parser error at position: " <> show parseError.pos <> "\n\
-              \Error Message: " <> (case parseError.error of ParseError str -> str) <>
-              "\nPrev 30 characters: `" <> (take 30 (drop (parseError.pos - 30) text)) <> "`\n\
-              \nNext 30 characters: `" <> (take 30 (drop parseError.pos text)) <> "`"
-            Right parseResult -> Right parseResult.result
+          "GET response failed: " <> AX.printError err
+        Right response
+          | response.status == StatusCode 200 -> do
+            let text = response.body
+            case unParser pursGraphOutputParser { pos: 0, str: response.body } of
+              Left parseError -> Left $
+                "Text parsed so far: `" <> take parseError.pos text <> "`\n\n\
+                \Parser error at position: " <> show parseError.pos <> "\n\
+                \Error Message: " <> (case parseError.error of ParseError str -> str) <>
+                "\nPrev 30 characters: `" <> (take 30 (drop (parseError.pos - 30) text)) <> "`\n\
+                \nNext 30 characters: `" <> (take 30 (drop parseError.pos text)) <> "`"
+              Right parseResult -> Right parseResult.result
 
+          | otherwise -> do
+            -- TODO: clean this up
+            -- error message from server
+            Left response.body
 
 loading :: forall q i o. H.Component HH.HTML q i o Aff
 loading = Hooks.component \_ _ -> Hooks.do
