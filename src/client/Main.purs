@@ -5,9 +5,14 @@ import Prelude
 import Affjax as AX
 import Affjax.ResponseFormat as AXRF
 import Client.Parser (Dependency(..), Module(..), ModuleInfo(..), Path(..), pursGraphOutputParser)
+import Data.Array (cons, foldl)
 import Data.Either (Either(..))
+import Data.Foldable (class Foldable)
 import Data.HTTP.Method (Method(..))
+import Data.List.Types (NonEmptyList)
+import Data.Maybe (Maybe(..))
 import Data.Monoid (power)
+import Data.Newtype (un)
 import Data.String.CodeUnits (drop, take)
 import Data.Tuple.Nested ((/\))
 import Effect (Effect)
@@ -62,5 +67,35 @@ loading = Hooks.component \_ _ -> Hooks.do
   Hooks.pure $
     HH.h1_
       [ HH.text $ "Loading" <> (power "." state) ]
+
+displayError :: forall q o. H.Component HH.HTML q String o Aff
+displayError = Hooks.component \_ errorMessage -> Hooks.do
+  Hooks.pure $
+    HH.h1_
+      [ HH.text $ "Error: " <> errorMessage ]
+
+displayGraph :: forall q o. H.Component HH.HTML q (NonEmptyList Module) o Aff
+displayGraph = Hooks.component \_ moduleList -> Hooks.do
   Hooks.pure $
     HH.div_
+      [ HH.h1_ [ HH.text "Module List" ]
+      , HH.div_ $ mapToArray renderModule moduleList
+
+      ]
+  where
+    mapToArray :: forall f a b. Foldable f => (a -> b) -> f a -> Array b
+    mapToArray f =
+      foldl (\acc next -> f next `cons` acc) []
+
+    renderModule :: Module -> H.ComponentHTML _ _ Aff
+    renderModule (Module rec) = let info = un ModuleInfo rec.info in
+      HH.div_
+        [ HH.h2_
+          [ HH.text rec.name ]
+        , HH.p_ [ HH.text $ un Path info.path ]
+        , HH.ul_ $ mapToArray renderDependency info.depends
+        ]
+
+    renderDependency :: Dependency -> H.ComponentHTML _ _ Aff
+    renderDependency (Dependency dep) =
+      HH.li_ [ HH.text dep ]
