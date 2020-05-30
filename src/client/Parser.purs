@@ -1,18 +1,23 @@
-module Server.Parser where
+module Client.Parser where
 
 import Prelude hiding (between)
 
 import Data.List (List)
 import Data.List.Types (NonEmptyList)
+import Data.Newtype (class Newtype)
 import Text.Parsing.StringParser (Parser)
 import Text.Parsing.StringParser.CodeUnits (regex, string)
 import Text.Parsing.StringParser.Combinators (between, sepBy, sepBy1, (<?>))
 
 newtype Module = Module { name :: String, info :: ModuleInfo }
+derive instance newtypeModule :: Newtype Module _
 newtype ModuleInfo = ModuleInfo { path :: Path, depends :: List Dependency }
+derive instance newtypeModuleInfo :: Newtype ModuleInfo _
 
 newtype Path = Path String
+derive instance newtypePath :: Newtype Path _
 newtype Dependency = Dependency String
+derive instance newtypeDependency :: Newtype Dependency _
 
 pursGraphOutputParser :: Parser (NonEmptyList Module)
 pursGraphOutputParser =
