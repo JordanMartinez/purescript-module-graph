@@ -8,6 +8,7 @@ You can edit this file as you like.
   , "effect"
   , "node-fs-aff"
   , "psci-support"
+  , "routing-duplex"
   , "string-parsers"
   , "warp"
   ]
