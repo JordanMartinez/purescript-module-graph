@@ -30,7 +30,7 @@ main = runHalogenAff do
   body <- awaitBody
   loadingIO <- runUI loading unit body
 
-  reqResult <- AX.request (AX.defaultRequest { url = "http://localhost:3000/", method = Left GET, responseFormat = AXRF.string })
+  reqResult <- AX.request (AX.defaultRequest { url = "http://localhost:3000/api/graphFile", method = Left GET, responseFormat = AXRF.string })
   let parseResults = case reqResult of
         Left err -> Left $
           "GET http://localhost:3000/ response failed to decode: " <> AX.printError err
