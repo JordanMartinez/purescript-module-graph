@@ -4,10 +4,12 @@ You can edit this file as you like.
 -}
 { name = "my-project"
 , dependencies =
-  [ "console"
+  [ "affjax"
+  , "console"
   , "effect"
   , "halogen-hooks-extra"
   , "halogen-svg"
+  , "http-methods"
   , "psci-support"
   , "string-parsers"
   ]
