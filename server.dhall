@@ -13,5 +13,5 @@ You can edit this file as you like.
   , "warp"
   ]
 , packages = ./packages.dhall
-, sources = [ "src/server/**/*.purs", "src/shared/**/*.purs" ]
+, sources = [ "src/Server/**/*.purs", "src/Shared/**/*.purs" ]
 }

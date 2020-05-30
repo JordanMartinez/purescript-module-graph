@@ -14,5 +14,5 @@ You can edit this file as you like.
   , "string-parsers"
   ]
 , packages = ./packages.dhall
-, sources = [ "src/client/**/*.purs", "src/shared/**/*.purs" ]
+, sources = [ "src/Client/**/*.purs", "src/Shared/**/*.purs" ]
 }

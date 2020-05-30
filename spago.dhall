@@ -8,5 +8,5 @@ in
 { name = "my-project"
 , dependencies = client.dependencies # server.dependencies
 , packages = ./packages.dhall
-, sources = [ "src/client/**/*.purs", "src/shared/**/*.purs", "src/server/**/*.purs" ]
+, sources = [ "src/Client/**/*.purs", "src/Shared/**/*.purs", "src/Server/**/*.purs" ]
 }
