@@ -11,11 +11,16 @@ import Text.Parsing.StringParser.Combinators (between, sepBy, sepBy1, (<?>))
 
 newtype Module = Module { name :: String, info :: ModuleInfo }
 derive instance newtypeModule :: Newtype Module _
+
 newtype ModuleInfo = ModuleInfo { path :: Path, depends :: List Dependency }
 derive instance newtypeModuleInfo :: Newtype ModuleInfo _
 
+newtype Package = Package String
+derive instance newtypePackage :: Newtype Package _
+
 newtype Path = Path String
 derive instance newtypePath :: Newtype Path _
+
 newtype Dependency = Dependency String
 derive instance newtypeDependency :: Newtype Dependency _
 
