@@ -3,7 +3,6 @@ module Server.Main where
 import Prelude hiding (between)
 
 import Data.Either (Either(..))
-import Data.String (drop, take)
 import Effect (Effect)
 import Effect.Aff (launchAff_)
 import Effect.Class (liftEffect)
@@ -15,27 +14,24 @@ import Node.FS.Aff (readTextFile)
 import Server.App (app)
 import Shared.Config (baseUrl, port)
 import Shared.Parser (pursGraphOutputParser)
-import Text.Parsing.StringParser (ParseError(..), Pos, unParser)
+import Text.Parsing.StringParser (ParseError(..), runParser)
 
 main :: Effect Unit
 main = launchAff_ do
-  file <- readTextFile UTF8 "./module-graph.json"
-  case unParser pursGraphOutputParser { pos: 0, str: file } of
+  fileContent <- readTextFile UTF8 "./module-graph.json"
+  case runParser pursGraphOutputParser fileContent of
     Left parseError -> do
-      liftEffect $ log $ mkErrorMessage parseError file
-    Right parseResult -> do
+      liftEffect $ log $ mkErrorMessage parseError
+    Right result -> do
       let
-        moduleList = parseResult.result
+        moduleList = result
+
         settings = defaultSettings
               { beforeMainLoop = log $ "Open file via " <> baseUrl
               , port = port
               }
       liftEffect $ void $ runSettings settings app
 
-mkErrorMessage :: { error :: ParseError, pos :: Pos } -> String -> String
-mkErrorMessage parseError text =
-  "Text parsed so far: `" <> take parseError.pos text <> "`\n\n\
-  \Parser error at position: " <> show parseError.pos <> "\n\
-  \Error Message: " <> (case parseError.error of ParseError str -> str) <> "\n\
-  \Prev 30 characters: `" <> (take 30 (drop (parseError.pos - 30) text)) <> "`\n\
-  \nNext 30 characters: `" <> (take 30 (drop parseError.pos text)) <> "`"
+mkErrorMessage :: ParseError -> String
+mkErrorMessage (ParseError str) =
+  "Error Message: " <> str
