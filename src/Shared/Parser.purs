@@ -2,8 +2,8 @@ module Shared.Parser where
 
 import Prelude hiding (between)
 
-import Data.List (List)
-import Data.List.Types (NonEmptyList)
+import Data.Array (fromFoldable)
+import Data.Array.NonEmpty (NonEmptyArray, fromFoldable1)
 import Data.Newtype (class Newtype)
 import Data.Tuple (Tuple(..))
 import Text.Parsing.StringParser (Parser, try)
@@ -15,7 +15,7 @@ newtype AllInfo = AllInfo
   , package :: Package
   , version :: Version
   , path :: PathToFile
-  , dependencies :: List Module
+  , dependencies :: Array Module
   }
 
 newtype Module = Module String
@@ -34,9 +34,9 @@ newtype Version = Version String
 derive instance eqVersion :: Eq Version
 derive instance newtypeVersion :: Newtype Version _
 
-pursGraphOutputParser :: Parser (NonEmptyList AllInfo)
+pursGraphOutputParser :: Parser (NonEmptyArray AllInfo)
 pursGraphOutputParser =
-  betweenCurlyBraces $ wholeModule `sepBy1` comma
+  fromFoldable1 <$> (betweenCurlyBraces $ wholeModule `sepBy1` comma)
 
 -- | `{"<module>":<module info>}`
 wholeModule :: Parser AllInfo
@@ -59,14 +59,14 @@ pathValue = ado
   in PathToFile filePath
 
 -- | `"depends":["<module path", "<module path>"]`
-dependencies :: Parser (List Module)
+dependencies :: Parser (Array Module)
 dependencies =
   (quoted dependsWord) *> colon *> (betweenBrackets modules)
 
 -- | `"<module path>","<module path>", ...,"<module path>"`
-modules :: Parser (List Module)
+modules :: Parser (Array Module)
 modules =
-  (Module <$> (quoted modulePath)) `sepBy` comma
+  fromFoldable <$> (Module <$> (quoted modulePath)) `sepBy` comma
 
 -- Single Pieces
 
