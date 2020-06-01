@@ -7,7 +7,7 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Routing.Duplex (RouteDuplex', root, segment)
 import Routing.Duplex.Generic (noArgs, sum)
 import Routing.Duplex.Generic.Syntax ((/))
-import Shared.Parser (Module, Package)
+import Shared.Types (Module, Package)
 
 data PageRoute
   = Home

@@ -16,7 +16,8 @@ import Node.Encoding (Encoding(..))
 import Node.FS.Aff (readTextFile)
 import Server.App (app)
 import Shared.Config (baseUrl, port)
-import Shared.Parser (AllInfo(..), pursGraphOutputParser)
+import Shared.Types (AllInfo(..))
+import Shared.Parser (pursGraphOutputParser)
 import Text.Parsing.StringParser (ParseError(..), runParser)
 
 main :: Effect Unit
