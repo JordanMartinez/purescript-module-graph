@@ -36,19 +36,18 @@ derive instance newtypeVersion :: Newtype Version _
 
 pursGraphOutputParser :: Parser (NonEmptyList AllInfo)
 pursGraphOutputParser =
-  between openCurlyBrace closeCurlyBrace $
-    wholeModule `sepBy1` comma
+  betweenCurlyBraces $ wholeModule `sepBy1` comma
 
 -- | `{"<module>":<module info>}`
 wholeModule :: Parser AllInfo
 wholeModule = ado
-  modName <- Module <$> quotedModulePath
-  void $ colon *> openCurlyBrace *> quotedPath *> colon *> quoteChar
+  modName <- Module <$> (quoted modulePath)
+  void $ colon *> openCurlyBrace *> (quoted pathWord) *> colon *> quoteChar
   Tuple package version <- try ado
     package <- string ".spago/" *> (Package <$> pathPiece)
     version <- string "/" *> (Version <$> pathPiece)
     in Tuple package version
-  path <- PathToFile <$> quotedFilePath
+  path <- PathToFile <$> (quoted filePath)
   dependencies' <- comma *> dependencies
   void closeCurlyBrace
   in AllInfo { modName, package, version, path, dependencies: dependencies' }
@@ -56,18 +55,20 @@ wholeModule = ado
 -- | `"path":"<file path>"`
 pathValue :: Parser PathToFile
 pathValue = ado
-  filePath <- quotedPath *> colon *> quotedFilePath
+  filePath <- (quoted pathWord) *> colon *> (quoted filePath)
   in PathToFile filePath
 
 -- | `"depends":["<module path", "<module path>"]`
 dependencies :: Parser (List Module)
 dependencies =
-  quotedDepends *> colon *> (between openBracket closeBracket modules)
+  (quoted dependsWord) *> colon *> (betweenBrackets modules)
 
 -- | `"<module path>","<module path>", ...,"<module path>"`
 modules :: Parser (List Module)
 modules =
-  (Module <$> quotedModulePath) `sepBy` comma
+  (Module <$> (quoted modulePath)) `sepBy` comma
+
+-- Single Pieces
 
 -- | `src/Path/To/Name.purs`
 filePath :: Parser String
@@ -80,25 +81,24 @@ modulePath = regex "[a-zA-Z0-9.]+" <?> "Could not match module path"
 pathPiece :: Parser String
 pathPiece = regex "[^/]+"
 
-quotedModulePath :: Parser String
-quotedModulePath = (between quoteChar quoteChar modulePath)
-                    <?> "Could not match `\"<module path>\"`"
+pathWord :: Parser String
+pathWord = string "path" <?> "Could not match `path`"
 
-quotedFilePath :: Parser String
-quotedFilePath = (between quoteChar quoteChar filePath)
-                    <?> "Could not match `\"<file path>\"`"
+dependsWord :: Parser String
+dependsWord = string "depends" <?> "Could not match `depends`"
 
-path :: Parser String
-path = string "path" <?> "Could not match `path`"
+-- Combinators
 
-quotedPath :: Parser String
-quotedPath = (between quoteChar quoteChar path) <?> "Could not match \"path\""
+quoted :: forall a. Parser a -> Parser a
+quoted = between quoteChar quoteChar
 
-depends :: Parser String
-depends = string "depends" <?> "Could not match `depends`"
+betweenCurlyBraces :: forall a. Parser a -> Parser a
+betweenCurlyBraces = between openCurlyBrace closeCurlyBrace
 
-quotedDepends :: Parser String
-quotedDepends = (between quoteChar quoteChar depends) <?> "Could not match `\"dependes\"`"
+betweenBrackets :: forall a. Parser a -> Parser a
+betweenBrackets = between openBracket closeBracket
+
+-- Single characters
 
 quoteChar :: Parser String
 quoteChar = string "\"" <?> "Could not match double-quote character"
