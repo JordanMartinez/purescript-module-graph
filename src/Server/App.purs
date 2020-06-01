@@ -18,7 +18,13 @@ app (Request req) f = case parse pageRoutes req.rawPathInfo of
       f $ responseFile status200 [(hContentType /\ "text/html")] "./dist/index.html" Nothing
     HalogenFile -> do
       f $ responseFile status200 [(hContentType /\ "text/javascript")] "./dist/app.js" Nothing
-    _ -> do
-      f $ responseStr status404 [(hContentType /\ "text/plain")] "Not yet implemented."
+    ModuleList -> do
+      f $ responseStr status200 [(hContentType /\ "application/json")] "Not yet implemented."
+    ModuleDependency modName -> do
+      f $ responseStr status200 [(hContentType /\ "application/json")] "Not yet implemented."
+    PackageList -> do
+      f $ responseStr status200 [(hContentType /\ "application/json")] "Not yet implemented."
+    PackageDependency package -> do
+      f $ responseStr status200 [(hContentType /\ "application/json")] "Not yet implemented."
   Left _ -> do
     f $ responseStr status404 [(hContentType /\ "text/plain")] "File not found."
