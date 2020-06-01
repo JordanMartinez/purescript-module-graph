@@ -5,61 +5,65 @@ import Prelude hiding (between)
 import Data.List (List)
 import Data.List.Types (NonEmptyList)
 import Data.Newtype (class Newtype)
-import Text.Parsing.StringParser (Parser)
+import Data.Tuple (Tuple(..))
+import Text.Parsing.StringParser (Parser, try)
 import Text.Parsing.StringParser.CodeUnits (regex, string)
 import Text.Parsing.StringParser.Combinators (between, sepBy, sepBy1, (<?>))
 
-newtype Module = Module { name :: String, info :: ModuleInfo }
-derive instance newtypeModule :: Newtype Module _
+newtype AllInfo = AllInfo
+  { modName :: Module
+  , package :: Package
+  , version :: Version
+  , path :: PathToFile
+  , dependencies :: List Module
+  }
 
-newtype ModuleInfo = ModuleInfo { path :: Path, depends :: List Dependency }
-derive instance newtypeModuleInfo :: Newtype ModuleInfo _
+newtype Module = Module String
+derive instance newtypeModule :: Newtype Module _
 
 newtype Package = Package String
 derive instance newtypePackage :: Newtype Package _
 
-newtype Path = Path String
-derive instance newtypePath :: Newtype Path _
+newtype PathToFile = PathToFile String
+derive instance newtypePathToFile :: Newtype PathToFile _
 
-newtype Dependency = Dependency String
-derive instance newtypeDependency :: Newtype Dependency _
+newtype Version = Version String
+derive instance newtypeVersion :: Newtype Version _
 
-pursGraphOutputParser :: Parser (NonEmptyList Module)
+pursGraphOutputParser :: Parser (NonEmptyList AllInfo)
 pursGraphOutputParser =
   between openCurlyBrace closeCurlyBrace $
     wholeModule `sepBy1` comma
 
 -- | `{"<module>":<module info>}`
-wholeModule :: Parser Module
+wholeModule :: Parser AllInfo
 wholeModule = ado
-  name <- quotedModulePath
-  info <- colon *> moduleInfo
-  in Module { name, info }
-
--- | `{"path":"<file path>", "depends":["<module path>", "<module path>"]}`
-moduleInfo :: Parser ModuleInfo
-moduleInfo =
-  between openCurlyBrace closeCurlyBrace ado
-    path <- pathValue
-    void comma
-    depends <- dependencies
-    in ModuleInfo { path, depends }
+  modName <- Module <$> quotedModulePath
+  void $ colon *> openCurlyBrace *> quotedPath *> colon *> quoteChar
+  Tuple package version <- try ado
+    package <- string ".spago/" *> (Package <$> pathPiece)
+    version <- string "/" *> (Version <$> pathPiece)
+    in Tuple package version
+  path <- PathToFile <$> quotedFilePath
+  dependencies' <- comma *> dependencies
+  void closeCurlyBrace
+  in AllInfo { modName, package, version, path, dependencies: dependencies' }
 
 -- | `"path":"<file path>"`
-pathValue :: Parser Path
+pathValue :: Parser PathToFile
 pathValue = ado
   filePath <- quotedPath *> colon *> quotedFilePath
-  in Path filePath
+  in PathToFile filePath
 
 -- | `"depends":["<module path", "<module path>"]`
-dependencies :: Parser (List Dependency)
+dependencies :: Parser (List Module)
 dependencies =
   quotedDepends *> colon *> (between openBracket closeBracket modules)
 
 -- | `"<module path>","<module path>", ...,"<module path>"`
-modules :: Parser (List Dependency)
+modules :: Parser (List Module)
 modules =
-  (Dependency <$> quotedModulePath) `sepBy` comma
+  (Module <$> quotedModulePath) `sepBy` comma
 
 -- | `src/Path/To/Name.purs`
 filePath :: Parser String
@@ -68,6 +72,9 @@ filePath = regex "[a-zA-Z0-9-/.]+" <?> "Could not match file path"
 -- | `Data.Foo.Bar.Baz`
 modulePath :: Parser String
 modulePath = regex "[a-zA-Z0-9.]+" <?> "Could not match module path"
+
+pathPiece :: Parser String
+pathPiece = regex "[^/]+"
 
 quotedModulePath :: Parser String
 quotedModulePath = (between quoteChar quoteChar modulePath)
