@@ -19,15 +19,19 @@ newtype AllInfo = AllInfo
   }
 
 newtype Module = Module String
+derive instance eqModule :: Eq Module
 derive instance newtypeModule :: Newtype Module _
 
 newtype Package = Package String
+derive instance eqPackage :: Eq Package
 derive instance newtypePackage :: Newtype Package _
 
 newtype PathToFile = PathToFile String
+derive instance eqPathToFile :: Eq PathToFile
 derive instance newtypePathToFile :: Newtype PathToFile _
 
 newtype Version = Version String
+derive instance eqVersion :: Eq Version
 derive instance newtypeVersion :: Newtype Version _
 
 pursGraphOutputParser :: Parser (NonEmptyList AllInfo)
