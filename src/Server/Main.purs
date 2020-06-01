@@ -20,7 +20,7 @@ import Node.FS.Aff (readTextFile)
 import Routing.Duplex (parse)
 import Shared.Config (baseUrl, port)
 import Shared.Parser (pursGraphOutputParser)
-import Shared.Routes (Route(..), serverRoutes)
+import Shared.Routes (PageRoute(..), pageRoutes)
 import Text.Parsing.StringParser (ParseError(..), Pos, unParser)
 
 main :: Effect Unit
@@ -39,7 +39,7 @@ main = launchAff_ do
       liftEffect $ void $ runSettings settings app
 
 app :: Application
-app (Request req) f = case parse serverRoutes req.rawPathInfo of
+app (Request req) f = case parse pageRoutes req.rawPathInfo of
   Left _ -> do
     f $ responseStr status404 [(hContentType /\ "text/plain")] "File not found."
   Right route -> case route of
@@ -47,8 +47,6 @@ app (Request req) f = case parse serverRoutes req.rawPathInfo of
       f $ responseFile status200 [(hContentType /\ "text/html")] "./dist/index.html" Nothing
     HalogenFile -> do
       f $ responseFile status200 [(hContentType /\ "text/javascript")] "./dist/app.js" Nothing
-    GraphFile -> do
-      f $ responseFile status200 [(hContentType /\ "text/plain")] "./module-graph.json" Nothing
 
 mkErrorMessage :: { error :: ParseError, pos :: Pos } -> String -> String
 mkErrorMessage parseError text =
