@@ -1,4 +1,4 @@
-module Client.Parser where
+module Shared.Parser where
 
 import Prelude hiding (between)
 

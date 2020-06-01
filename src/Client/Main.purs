@@ -5,7 +5,7 @@ import Prelude
 import Affjax as AX
 import Affjax.ResponseFormat as AXRF
 import Affjax.StatusCode (StatusCode(..))
-import Client.Parser (Dependency(..), Module(..), ModuleInfo(..), Path(..), pursGraphOutputParser)
+import Shared.Parser (Dependency(..), Module(..), ModuleInfo(..), Path(..), pursGraphOutputParser)
 import Data.Array (cons, foldl)
 import Data.Either (Either(..))
 import Data.Foldable (class Foldable)
