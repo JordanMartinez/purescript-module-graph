@@ -4,7 +4,9 @@ You can edit this file as you like.
 -}
 { name = "my-project"
 , dependencies =
-  [ "console"
+  [ "codec"
+  , "codec-argonaut"
+  , "console"
   , "effect"
   , "node-fs-aff"
   , "psci-support"
