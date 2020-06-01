@@ -4,6 +4,7 @@ import Prelude hiding (between)
 
 import Data.Array (fromFoldable)
 import Data.Array.NonEmpty (NonEmptyArray, fromFoldable1)
+import Data.Hashable (class Hashable)
 import Data.Newtype (class Newtype)
 import Data.Tuple (Tuple(..))
 import Text.Parsing.StringParser (Parser, try)
@@ -17,21 +18,33 @@ newtype AllInfo = AllInfo
   , path :: PathToFile
   , dependencies :: Array Module
   }
+derive instance eqAllInfo :: Eq AllInfo
+derive instance ordAllInfo :: Ord AllInfo
+derive newtype instance hashableAllInfo :: Hashable AllInfo
+derive instance newtypeAllInfo :: Newtype AllInfo _
 
 newtype Module = Module String
 derive instance eqModule :: Eq Module
+derive instance ordModule :: Ord Module
+derive newtype instance hashableModule :: Hashable Module
 derive instance newtypeModule :: Newtype Module _
 
 newtype Package = Package String
 derive instance eqPackage :: Eq Package
+derive instance ordPackage :: Ord Package
+derive newtype instance hashablePackage :: Hashable Package
 derive instance newtypePackage :: Newtype Package _
 
 newtype PathToFile = PathToFile String
 derive instance eqPathToFile :: Eq PathToFile
+derive instance ordPathToFile :: Ord PathToFile
+derive newtype instance hashablePathToFile :: Hashable PathToFile
 derive instance newtypePathToFile :: Newtype PathToFile _
 
 newtype Version = Version String
 derive instance eqVersion :: Eq Version
+derive instance ordVersion :: Ord Version
+derive newtype instance hashableVersion :: Hashable Version
 derive instance newtypeVersion :: Newtype Version _
 
 pursGraphOutputParser :: Parser (NonEmptyArray AllInfo)

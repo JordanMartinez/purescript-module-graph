@@ -2,7 +2,10 @@ module Server.Main where
 
 import Prelude hiding (between)
 
+import Data.Array.NonEmpty (singleton, snoc, uncons)
 import Data.Either (Either(..))
+import Data.Foldable (foldl)
+import Data.HashSet as Set
 import Effect (Effect)
 import Effect.Aff (launchAff_)
 import Effect.Class (liftEffect)
@@ -13,7 +16,7 @@ import Node.Encoding (Encoding(..))
 import Node.FS.Aff (readTextFile)
 import Server.App (app)
 import Shared.Config (baseUrl, port)
-import Shared.Parser (pursGraphOutputParser)
+import Shared.Parser (AllInfo(..), pursGraphOutputParser)
 import Text.Parsing.StringParser (ParseError(..), runParser)
 
 main :: Effect Unit
@@ -22,10 +25,16 @@ main = launchAff_ do
   case runParser pursGraphOutputParser fileContent of
     Left parseError -> do
       liftEffect $ log $ mkErrorMessage parseError
-    Right result -> do
+    Right resultArray -> do
       let
-        moduleList = result
+        { head: (AllInfo a), tail } = uncons resultArray
+        initialValue = { modNames: singleton a.modName, packages: Set.singleton a.package }
+        extractInfo acc (AllInfo rec) =
+          acc { modNames = acc.modNames `snoc` rec.modName
+              , packages = Set.insert rec.package acc.packages
+              }
 
+        { modNames, packages } = foldl extractInfo initialValue tail
         settings = defaultSettings
               { beforeMainLoop = log $ "Open file via " <> baseUrl
               , port = port
