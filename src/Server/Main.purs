@@ -40,7 +40,7 @@ main = launchAff_ do
               { beforeMainLoop = log $ "Open file via " <> baseUrl
               , port = port
               }
-      liftEffect $ void $ runSettings settings app
+      liftEffect $ void $ runSettings settings (app { modNames, packages, resultArray })
 
 mkErrorMessage :: ParseError -> String
 mkErrorMessage (ParseError str) =

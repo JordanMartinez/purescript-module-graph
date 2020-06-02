@@ -2,7 +2,7 @@ module Server.App where
 
 import Prelude
 
-import Data.Argonaut (Json)
+import Data.Argonaut (Json, stringify)
 import Data.Array.NonEmpty (NonEmptyArray)
 import Data.Codec as Codec
 import Data.Either (Either(..))
@@ -15,7 +15,6 @@ import Routing.Duplex (parse)
 import Shared.Codec (moduleCodec, nonEmptyArrayCodec, packageCodec)
 import Shared.Routes (PageRoute(..), pageRoutes)
 import Shared.Types (AllInfo, Module, Package)
-import Unsafe.Coerce (unsafeCoerce)
 
 type Env =
   { modNames :: NonEmptyArray Module
@@ -32,21 +31,18 @@ app env (Request req) f = case parse pageRoutes req.rawPathInfo of
       f $ responseFile status200 [(hContentType /\ "text/javascript")] "./dist/app.js" Nothing
     ModuleList -> do
       f $ responseStr status200 [(hContentType /\ "application/json")] $
-        jsonToString encodedModuleList
+        stringify encodedModuleList
     ModuleDependency modName -> do
       f $ responseStr status200 [(hContentType /\ "application/json")] $
         "Not yet implemented."
     PackageList -> do
       f $ responseStr status200 [(hContentType /\ "application/json")] $
-        jsonToString encodePackageList
+        stringify encodePackageList
     PackageDependency package -> do
       f $ responseStr status200 [(hContentType /\ "application/json")] "Not yet implemented."
   Left _ -> do
     f $ responseStr status404 [(hContentType /\ "text/plain")] "File not found."
   where
-    jsonToString :: Json -> String
-    jsonToString = unsafeCoerce
-
     encodedModuleList :: Json
     encodedModuleList =
       Codec.encode (nonEmptyArrayCodec moduleCodec) env.modNames
