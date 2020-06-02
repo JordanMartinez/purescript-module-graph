@@ -10,6 +10,7 @@ You can edit this file as you like.
   , "console"
   , "effect"
   , "halogen-hooks-extra"
+  , "halogen-select"
   , "halogen-svg"
   , "http-methods"
   , "psci-support"
