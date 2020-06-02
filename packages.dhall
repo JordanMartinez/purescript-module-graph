@@ -6,6 +6,10 @@ let overrides =
       { version = "master"
       , depends = [ "halogen", "halogen-hooks", "halogen-hooks-extra" ]
       }
+  , halogen-hooks = upstream.halogen-hooks //
+      { version = "v0.4.1" }
+  , halogen-hooks-extra = upstream.halogen-hooks-extra //
+      { version = "v0.6.0" }
   }
 
 let additions =
