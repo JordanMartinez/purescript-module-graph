@@ -5,7 +5,6 @@ import Prelude
 import Affjax as AX
 import Affjax.ResponseFormat as AXRF
 import Affjax.StatusCode (StatusCode(..))
-import Shared.Parser (Dependency(..), Module(..), ModuleInfo(..), Path(..), pursGraphOutputParser)
 import Data.Array (cons, foldl)
 import Data.Either (Either(..))
 import Data.Foldable (class Foldable)
@@ -22,80 +21,112 @@ import Halogen (liftAff)
 import Halogen as H
 import Halogen.Aff (awaitBody, runHalogenAff)
 import Halogen.HTML as HH
+import Halogen.Hooks (useLifecycleEffect)
 import Halogen.Hooks as Hooks
+import Halogen.Hooks.Extra.Hooks (useEvent)
 import Halogen.VDom.Driver (runUI)
 import Routing.Duplex (print)
+import Select (SelectEvent(..), SelectReturn(..), selectInput, useSelect)
+import Select as Select
 import Shared.Config (baseUrl)
-import Shared.Routes (Route(..), serverRoutes)
+import Shared.Routes (PageRoute(..), pageRoutes)
+import Shared.Types (Module, Package)
 import Text.Parsing.StringParser (ParseError(..), unParser)
 
 main :: Effect Unit
 main = runHalogenAff do
-  { body, parseResults } <- both <$> awaitBody <*> getGraphFile
-  case parseResults of
-    Left errorMessage -> do
-      runUI displayError errorMessage body
-    Right fileContent -> do
-      runUI displayGraph fileContent body
+  body <- awaitBody
+  runUI rootComponent unit body
+  -- { body, parseResults } <- both <$> awaitBody <*> getGraphFile
+  -- case parseResults of
+  --   Left errorMessage -> do
+  --     runUI displayError errorMessage body
+  --   Right fileContent -> do
+  --     runUI displayGraph fileContent body
+  --
+  -- where
+  --   both body parseResults = { body, parseResults }
+  --
+  --   getGraphFile = do
+  --     reqResult <- AX.request $ AX.defaultRequest
+  --       { url = baseUrl <> print serverRoutes GraphFile
+  --       , method = Left GET
+  --       , responseFormat = AXRF.string
+  --       }
+  --
+  --     pure $ case reqResult of
+  --       Left err -> Left $
+  --         "GET response failed: " <> AX.printError err
+  --       Right response
+  --         | response.status == StatusCode 200 -> do
+  --           let text = response.body
+  --           case unParser pursGraphOutputParser { pos: 0, str: response.body } of
+  --             Left parseError -> Left $
+  --               "Text parsed so far: `" <> take parseError.pos text <> "`\n\n\
+  --               \Parser error at position: " <> show parseError.pos <> "\n\
+  --               \Error Message: " <> (case parseError.error of ParseError str -> str) <>
+  --               "\nPrev 30 characters: `" <> (take 30 (drop (parseError.pos - 30) text)) <> "`\n\
+  --               \nNext 30 characters: `" <> (take 30 (drop parseError.pos text)) <> "`"
+  --             Right parseResult -> Right parseResult.result
+  --
+  --         | otherwise -> do
+  --           -- TODO: clean this up
+  --           -- error message from server
+  --           Left response.body
 
-  where
-    both body parseResults = { body, parseResults }
+rootComponent :: forall q i o. H.Component HH.HTML q i o Aff
+rootComponent = Hooks.component \_ _ -> Hooks.do
 
-    getGraphFile = do
-      reqResult <- AX.request $ AX.defaultRequest
-        { url = baseUrl <> print serverRoutes GraphFile
-        , method = Left GET
-        , responseFormat = AXRF.string
-        }
+  event <- useEvent
+  SelectReturn select <- useSelect $ selectInput
+    { inputType = Select.Text
+    , debounceTime = Just $ Milliseconds 300.0
+    , pushNewSearch = event.push <<< NewSearch
+    , pushSelectedIdxChanged = event.push <<< SelectedIndex
+    }
+  useLifecycleEffect do
+    void $ event.setCallback $ Just \_ i -> case i of
+      NewSearch str -> do
+        pure unit
+      SelectedIndex i -> do
+        pure unit
+      _ -> do
+        pure unit
 
-      pure $ case reqResult of
-        Left err -> Left $
-          "GET response failed: " <> AX.printError err
-        Right response
-          | response.status == StatusCode 200 -> do
-            let text = response.body
-            case unParser pursGraphOutputParser { pos: 0, str: response.body } of
-              Left parseError -> Left $
-                "Text parsed so far: `" <> take parseError.pos text <> "`\n\n\
-                \Parser error at position: " <> show parseError.pos <> "\n\
-                \Error Message: " <> (case parseError.error of ParseError str -> str) <>
-                "\nPrev 30 characters: `" <> (take 30 (drop (parseError.pos - 30) text)) <> "`\n\
-                \nNext 30 characters: `" <> (take 30 (drop parseError.pos text)) <> "`"
-              Right parseResult -> Right parseResult.result
+    pure Nothing
 
-          | otherwise -> do
-            -- TODO: clean this up
-            -- error message from server
-            Left response.body
-
-displayError :: forall q o. H.Component HH.HTML q String o Aff
-displayError = Hooks.component \_ errorMessage -> Hooks.do
-  Hooks.pure $
-    HH.h1_
-      [ HH.text $ "Error: " <> errorMessage ]
-
-displayGraph :: forall q o. H.Component HH.HTML q (NonEmptyList Module) o Aff
-displayGraph = Hooks.component \_ moduleList -> Hooks.do
   Hooks.pure $
     HH.div_
-      [ HH.h1_ [ HH.text "Module List" ]
-      , HH.div_ $ mapToArray renderModule moduleList
+      [ HH.text "To implement" ]
 
-      ]
-  where
-    mapToArray :: forall f a b. Foldable f => (a -> b) -> f a -> Array b
-    mapToArray f =
-      foldl (\acc next -> f next `cons` acc) []
-
-    renderModule :: Module -> H.ComponentHTML _ _ Aff
-    renderModule (Module rec) = let info = un ModuleInfo rec.info in
-      HH.div_
-        [ HH.h2_
-          [ HH.text rec.name ]
-        , HH.p_ [ HH.text $ un Path info.path ]
-        , HH.ul_ $ mapToArray renderDependency info.depends
-        ]
-
-    renderDependency :: Dependency -> H.ComponentHTML _ _ Aff
-    renderDependency (Dependency dep) =
-      HH.li_ [ HH.text dep ]
+-- displayError :: forall q o. H.Component HH.HTML q String o Aff
+-- displayError = Hooks.component \_ errorMessage -> Hooks.do
+--   Hooks.pure $
+--     HH.h1_
+--       [ HH.text $ "Error: " <> errorMessage ]
+--
+-- displayGraph :: forall q o. H.Component HH.HTML q (NonEmptyList Module) o Aff
+-- displayGraph = Hooks.component \_ moduleList -> Hooks.do
+--   Hooks.pure $
+--     HH.div_
+--       [ HH.h1_ [ HH.text "Module List" ]
+--       , HH.div_ $ mapToArray renderModule moduleList
+--
+--       ]
+--   where
+--     mapToArray :: forall f a b. Foldable f => (a -> b) -> f a -> Array b
+--     mapToArray f =
+--       foldl (\acc next -> f next `cons` acc) []
+--
+--     renderModule :: Module -> H.ComponentHTML _ _ Aff
+--     renderModule (Module rec) = let info = un ModuleInfo rec.info in
+--       HH.div_
+--         [ HH.h2_
+--           [ HH.text rec.name ]
+--         , HH.p_ [ HH.text $ un Path info.path ]
+--         , HH.ul_ $ mapToArray renderDependency info.depends
+--         ]
+--
+--     renderDependency :: Dependency -> H.ComponentHTML _ _ Aff
+--     renderDependency (Dependency dep) =
+--       HH.li_ [ HH.text dep ]
