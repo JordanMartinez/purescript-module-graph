@@ -13,9 +13,11 @@ You can edit this file as you like.
   , "halogen-select"
   , "halogen-svg"
   , "http-methods"
+  , "profunctor-lenses"
   , "psci-support"
   , "routing-duplex"
   , "string-parsers"
+  , "unordered-collections"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/Client/**/*.purs", "src/Shared/**/*.purs" ]
