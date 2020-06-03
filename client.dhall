@@ -16,6 +16,7 @@ You can edit this file as you like.
   , "http-methods"
   , "profunctor-lenses"
   , "psci-support"
+  , "remotedata"
   , "routing-duplex"
   , "string-parsers"
   , "unordered-collections"
