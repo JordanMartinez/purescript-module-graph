@@ -41,42 +41,6 @@ main :: Effect Unit
 main = runHalogenAff do
   body <- awaitBody
   runUI rootComponent unit body
-  -- { body, parseResults } <- both <$> awaitBody <*> getGraphFile
-  -- case parseResults of
-  --   Left errorMessage -> do
-  --     runUI displayError errorMessage body
-  --   Right fileContent -> do
-  --     runUI displayGraph fileContent body
-  --
-  -- where
-  --   both body parseResults = { body, parseResults }
-  --
-  --   getGraphFile = do
-  --     reqResult <- AX.request $ AX.defaultRequest
-  --       { url = baseUrl <> print serverRoutes GraphFile
-  --       , method = Left GET
-  --       , responseFormat = AXRF.string
-  --       }
-  --
-  --     pure $ case reqResult of
-  --       Left err -> Left $
-  --         "GET response failed: " <> AX.printError err
-  --       Right response
-  --         | response.status == StatusCode 200 -> do
-  --           let text = response.body
-  --           case unParser pursGraphOutputParser { pos: 0, str: response.body } of
-  --             Left parseError -> Left $
-  --               "Text parsed so far: `" <> take parseError.pos text <> "`\n\n\
-  --               \Parser error at position: " <> show parseError.pos <> "\n\
-  --               \Error Message: " <> (case parseError.error of ParseError str -> str) <>
-  --               "\nPrev 30 characters: `" <> (take 30 (drop (parseError.pos - 30) text)) <> "`\n\
-  --               \nNext 30 characters: `" <> (take 30 (drop parseError.pos text)) <> "`"
-  --             Right parseResult -> Right parseResult.result
-  --
-  --         | otherwise -> do
-  --           -- TODO: clean this up
-  --           -- error message from server
-  --           Left response.body
 
 rootComponent :: forall q i o. H.Component HH.HTML q i o Aff
 rootComponent = Hooks.component \_ _ -> Hooks.do
