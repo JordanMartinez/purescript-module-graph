@@ -2,10 +2,12 @@ module Client.Main where
 
 import Prelude
 
+import Affjax (printError)
 import Affjax as AX
 import Affjax.ResponseFormat as AXRF
 import Affjax.StatusCode (StatusCode(..))
 import Data.Array (cons, foldl)
+import Data.Codec (decode)
 import Data.Either (Either(..))
 import Data.Foldable (class Foldable)
 import Data.HTTP.Method (Method(..))
@@ -25,9 +27,11 @@ import Halogen.Hooks (useLifecycleEffect)
 import Halogen.Hooks as Hooks
 import Halogen.Hooks.Extra.Hooks (useEvent)
 import Halogen.VDom.Driver (runUI)
+import Network.RemoteData as RD
 import Routing.Duplex (print)
 import Select (SelectEvent(..), SelectReturn(..), selectInput, useSelect)
 import Select as Select
+import Shared.Codec (nonEmptyArrayCodec, packageCodec)
 import Shared.Config (baseUrl)
 import Shared.Routes (PageRoute(..), pageRoutes)
 import Shared.Types (Module, Package)
@@ -76,18 +80,32 @@ main = runHalogenAff do
 
 rootComponent :: forall q i o. H.Component HH.HTML q i o Aff
 rootComponent = Hooks.component \_ _ -> Hooks.do
-
-  event <- useEvent
-  SelectReturn select <- useSelect $ selectInput
+  content /\ contentId <- useState $ RD.NotAsked
+  packageEvents <- useEvent
+  SelectReturn packageSelect <- useSelect $ selectInput
     { inputType = Select.Text
     , debounceTime = Just $ Milliseconds 300.0
-    , pushNewSearch = event.push <<< NewSearch
-    , pushSelectedIdxChanged = event.push <<< SelectedIndex
+    , pushNewSearch = packageEvents.push <<< NewSearch
+    , pushSelectedIdxChanged = packageEvents.push <<< SelectedIndex
     }
   useLifecycleEffect do
     void $ event.setCallback $ Just \_ i -> case i of
       NewSearch str -> do
-        pure unit
+        H.put contentId RD.Loading
+        reqResult <- liftAff $ AX.request $ AX.defaultRequest
+              { url = baseUrl <> print pageRoutes $ Package str
+              , method = Left GET
+              , responseFormat = AXRF.json
+              }
+        case reqResult of
+          Right response | response.statusCode == StatusCode 200 -> do
+            let packageList = decode (nonEmptyArrayCodec packageCodec) respone.body
+            H.put contentId $ Success packageList
+          Right response -> do
+            H.put contentID $ Falure $ "Status code: " <> show response.statusCode
+          Left e -> do
+            H.put contentId $ Failure $ "Error: " <> printError e
+
       SelectedIndex i -> do
         pure unit
       _ -> do
