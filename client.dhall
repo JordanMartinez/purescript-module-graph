@@ -5,6 +5,7 @@ You can edit this file as you like.
 { name = "my-project"
 , dependencies =
   [ "affjax"
+  , "argonaut-core"
   , "codec"
   , "codec-argonaut"
   , "console"
