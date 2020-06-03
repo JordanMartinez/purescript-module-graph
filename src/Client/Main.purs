@@ -23,7 +23,7 @@ import Halogen (liftAff)
 import Halogen as H
 import Halogen.Aff (awaitBody, runHalogenAff)
 import Halogen.HTML as HH
-import Halogen.Hooks (useLifecycleEffect)
+import Halogen.Hooks (useLifecycleEffect, useState)
 import Halogen.Hooks as Hooks
 import Halogen.Hooks.Extra.Hooks (useEvent)
 import Halogen.VDom.Driver (runUI)
@@ -89,7 +89,7 @@ rootComponent = Hooks.component \_ _ -> Hooks.do
     , pushSelectedIdxChanged = packageEvents.push <<< SelectedIndex
     }
   useLifecycleEffect do
-    void $ event.setCallback $ Just \_ i -> case i of
+    void $ packageEvents.setCallback $ Just \_ i -> case i of
       NewSearch str -> do
         H.put contentId RD.Loading
         reqResult <- liftAff $ AX.request $ AX.defaultRequest
