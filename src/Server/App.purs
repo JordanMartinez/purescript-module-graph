@@ -2,7 +2,7 @@ module Server.App where
 
 import Prelude
 
-import Data.Argonaut (Json, stringify)
+import Data.Argonaut.Core (Json, stringify)
 import Data.Array.NonEmpty (NonEmptyArray)
 import Data.Codec as Codec
 import Data.Either (Either(..))
