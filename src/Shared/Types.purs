@@ -16,6 +16,17 @@ derive instance ordAllInfo :: Ord AllInfo
 derive newtype instance hashableAllInfo :: Hashable AllInfo
 derive instance newtypeAllInfo :: Newtype AllInfo _
 
+newtype ModuleInfo = ModuleInfo
+  { package :: Package
+  , version :: Version
+  , path :: PathToFile
+  , dependencies :: Array Module
+  }
+derive instance eqModuleInfo :: Eq ModuleInfo
+derive instance ordModuleInfo :: Ord ModuleInfo
+derive newtype instance hashableModuleInfo :: Hashable ModuleInfo
+derive instance newtypeModuleInfo :: Newtype ModuleInfo _
+
 newtype Module = Module String
 derive instance eqModule :: Eq Module
 derive instance ordModule :: Ord Module
