@@ -14,6 +14,7 @@ You can edit this file as you like.
   , "halogen-select"
   , "halogen-svg"
   , "http-methods"
+  , "maybe"
   , "profunctor-lenses"
   , "psci-support"
   , "remotedata"

@@ -13,6 +13,7 @@ You can edit this file as you like.
   , "psci-support"
   , "routing-duplex"
   , "string-parsers"
+  , "unordered-collections"
   , "warp"
   ]
 , packages = ./packages.dhall

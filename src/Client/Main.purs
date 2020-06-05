@@ -34,7 +34,7 @@ import Select as Select
 import Shared.Codec (nonEmptyArrayCodec, packageCodec)
 import Shared.Config (baseUrl)
 import Shared.Routes (PageRoute(..), pageRoutes)
-import Shared.Types (Module, Package)
+import Shared.Types (Module, Package(..))
 import Text.Parsing.StringParser (ParseError(..), unParser)
 
 main :: Effect Unit

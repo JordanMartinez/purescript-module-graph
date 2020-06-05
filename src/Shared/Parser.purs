@@ -3,36 +3,36 @@ module Shared.Parser where
 import Prelude hiding (between)
 
 import Data.Array (fromFoldable)
-import Data.Array.NonEmpty (NonEmptyArray, fromFoldable1)
+import Data.Foldable (foldl)
+import Data.HashMap (HashMap)
+import Data.HashMap as HashMap
 import Data.Tuple (Tuple(..))
+import Shared.Types (AllInfo(..), ModuleInfo(..), Module(..), Package(..), PathToFile(..), Version(..))
 import Text.Parsing.StringParser (Parser, try)
 import Text.Parsing.StringParser.CodeUnits (regex, string)
 import Text.Parsing.StringParser.Combinators (between, sepBy, sepBy1, (<?>))
-import Shared.Types (AllInfo(..), Module(..), Package(..), PathToFile(..), Version(..))
 
-pursGraphOutputParser :: Parser (NonEmptyArray AllInfo)
+pursGraphOutputParser :: Parser (HashMap Module ModuleInfo)
 pursGraphOutputParser =
-  fromFoldable1 <$> (betweenCurlyBraces $ wholeModule `sepBy1` comma)
+  convertToHashMap <$> (betweenCurlyBraces $ wholeModule `sepBy1` comma)
+  where
+    convertToHashMap = foldl mapify HashMap.empty
+    mapify acc (AllInfo { modName, package, version, path, dependencies: dependencies' }) =
+      HashMap.insert modName (ModuleInfo { package, version, path, dependencies: dependencies' }) acc
 
 -- | `{"<module>":<module info>}`
 wholeModule :: Parser AllInfo
 wholeModule = ado
   modName <- Module <$> (quoted modulePath)
-  void $ colon *> openCurlyBrace *> (quoted pathWord) *> colon *> quoteChar
+  void $ colon *> openCurlyBrace *> (quoted pathWord) *> colon
   Tuple package version <- try ado
-    package <- string ".spago/" *> (Package <$> pathPiece)
+    package <- quoteChar *> string ".spago/" *> (Package <$> pathPiece)
     version <- string "/" *> (Version <$> pathPiece)
     in Tuple package version
   path <- PathToFile <$> (quoted filePath)
   dependencies' <- comma *> dependencies
   void closeCurlyBrace
   in AllInfo { modName, package, version, path, dependencies: dependencies' }
-
--- | `"path":"<file path>"`
-pathValue :: Parser PathToFile
-pathValue = ado
-  filePath <- (quoted pathWord) *> colon *> (quoted filePath)
-  in PathToFile filePath
 
 -- | `"depends":["<module path", "<module path>"]`
 dependencies :: Parser (Array Module)
@@ -66,13 +66,19 @@ dependsWord = string "depends" <?> "Could not match `depends`"
 -- Combinators
 
 quoted :: forall a. Parser a -> Parser a
-quoted = between quoteChar quoteChar
+quoted = between
+  (quoteChar <?> "Opening quote not matched")
+  (quoteChar <?> "Closing quote not matched")
 
 betweenCurlyBraces :: forall a. Parser a -> Parser a
-betweenCurlyBraces = between openCurlyBrace closeCurlyBrace
+betweenCurlyBraces = between
+  (openCurlyBrace <?> "Opening curly brace not matched")
+  (closeCurlyBrace <?> "Closing curly brace not matched")
 
 betweenBrackets :: forall a. Parser a -> Parser a
-betweenBrackets = between openBracket closeBracket
+betweenBrackets = between
+  (openBracket <?> "Opening bracket not matched")
+  (closeBracket <?> "Closing bracket not matched")
 
 -- Single characters
 
