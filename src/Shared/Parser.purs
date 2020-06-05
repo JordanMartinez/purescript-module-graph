@@ -10,7 +10,7 @@ import Data.Tuple (Tuple(..))
 import Shared.Types (AllInfo(..), ModuleInfo(..), Module(..), Package(..), PathToFile(..), Version(..))
 import Text.Parsing.StringParser (Parser, try)
 import Text.Parsing.StringParser.CodeUnits (regex, string)
-import Text.Parsing.StringParser.Combinators (between, sepBy, sepBy1, (<?>))
+import Text.Parsing.StringParser.Combinators (between, lookAhead, sepBy, sepBy1, (<?>))
 
 pursGraphOutputParser :: Parser (HashMap Module ModuleInfo)
 pursGraphOutputParser =
@@ -25,7 +25,7 @@ wholeModule :: Parser AllInfo
 wholeModule = ado
   modName <- Module <$> (quoted modulePath)
   void $ colon *> openCurlyBrace *> (quoted pathWord) *> colon
-  Tuple package version <- try ado
+  Tuple package version <- lookAhead ado
     package <- quoteChar *> string ".spago/" *> (Package <$> pathPiece)
     version <- string "/" *> (Version <$> pathPiece)
     in Tuple package version
