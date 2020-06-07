@@ -9,6 +9,7 @@ You can edit this file as you like.
   , "codec-argonaut"
   , "console"
   , "effect"
+  , "interpolate"
   , "node-fs-aff"
   , "psci-support"
   , "routing-duplex"
