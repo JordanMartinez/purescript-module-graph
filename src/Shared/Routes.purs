@@ -12,10 +12,16 @@ import Shared.Types (Module, Package)
 data PageRoute
   = Home
   | HalogenFile
+  -- | Gets a list of all modules in the package set. Mainly for
+  -- | listing the modules one could query in a dropdown or something.
   | ModuleList
-  | ModuleDependency Module
+  -- | Gets the dependency and dependent graph of the module
+  | ModuleGraph Module
+  -- | Gets a list of all packages in the package set. Mainly for
+  -- | listing the packages one could query in a dropdown or something.
   | PackageList
-  | PackageDependency Package
+  -- | Gets the dependency and dependent graph of the package
+  | PackageGraph Package
 
 derive instance eqPageRoute :: Eq PageRoute
 derive instance genericPageRoute :: Generic PageRoute _
@@ -24,10 +30,10 @@ pageRoutes :: RouteDuplex' PageRoute
 pageRoutes = root $ sum
   { "Home": noArgs
   , "HalogenFile": "app.js" / noArgs
-  , "ModuleList": "api" / "module" / noArgs
-  , "ModuleDependency": "api" / "module" / module'
-  , "PackageList": "api" / "package" / noArgs
-  , "PackageDependency": "api" / "package" / package
+  , "ModuleList": "api" / "modules" / noArgs
+  , "ModuleGraph": "api" / "modules" / module'
+  , "PackageList": "api" / "packages" / noArgs
+  , "PackageGraph": "api" / "packages" / package
   }
 
 module' :: RouteDuplex' Module

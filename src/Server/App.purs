@@ -32,13 +32,13 @@ app env (Request req) f = case parse pageRoutes req.rawPathInfo of
     ModuleList -> do
       f $ responseStr status200 [(hContentType /\ "application/json")] $
         stringify encodedModuleList
-    ModuleDependency modName -> do
+    ModuleGraph modName -> do
       f $ responseStr status200 [(hContentType /\ "application/json")] $
         "Not yet implemented."
     PackageList -> do
       f $ responseStr status200 [(hContentType /\ "application/json")] $
         stringify encodePackageList
-    PackageDependency package -> do
+    PackageGraph package -> do
       f $ responseStr status200 [(hContentType /\ "application/json")] "Not yet implemented."
   Left _ -> do
     f $ responseStr status404 [(hContentType /\ "text/plain")] "File not found."
