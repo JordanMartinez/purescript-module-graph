@@ -45,7 +45,7 @@ main = launchAff_ do
           , packageGraph: mkPackageGraph a.result
           }
         settings = defaultSettings
-          { beforeMainLoop = log $ "Open file via" <> baseUrl
+          { beforeMainLoop = log $ "Open file via " <> baseUrl
           , port = port
           }
       liftEffect $ void $ runSettings settings (app env)
