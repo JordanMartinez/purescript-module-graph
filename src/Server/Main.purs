@@ -43,7 +43,3 @@ main = launchAff_ do
           , port = port
           }
       liftEffect $ void $ runSettings settings (app env)
-
-mkErrorMessage :: ParseError -> String
-mkErrorMessage (ParseError str) =
-  "Error Message: " <> str
