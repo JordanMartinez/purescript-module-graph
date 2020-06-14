@@ -16,7 +16,7 @@ import Server.App (app)
 import Server.DotRenderer (mkPackageGraph)
 import Shared.Config (baseUrl, port)
 import Shared.Parser (pursGraphOutputParser)
-import Text.Parsing.StringParser (ParseError(..), unParser)
+import Text.Parsing.StringParser (unParser)
 
 main :: Effect Unit
 main = launchAff_ do
