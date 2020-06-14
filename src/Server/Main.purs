@@ -10,7 +10,8 @@ import Effect.Console (log)
 import Network.Warp.Run (runSettings)
 import Network.Warp.Settings (defaultSettings)
 import Node.Encoding (Encoding(..))
-import Node.FS.Aff (readTextFile)
+import Node.FS.Aff (exists, mkdir, readTextFile)
+import Node.Path as Path
 import Server.App (app)
 import Server.DotRenderer (mkPackageGraph)
 import Shared.Config (baseUrl, port)
@@ -19,6 +20,13 @@ import Text.Parsing.StringParser (ParseError(..), unParser)
 
 main :: Effect Unit
 main = launchAff_ do
+  let
+    dotFilesFolder = Path.concat ["dist", "dotFiles"]
+    imagesFolder = Path.concat ["dist", "images"]
+  unlessM (exists dotFilesFolder) do
+    mkdir dotFilesFolder
+  unlessM (exists imagesFolder) do
+    mkdir imagesFolder
   fileContent <- readTextFile UTF8 "./module-graph.json"
   case unParser pursGraphOutputParser {pos: 0, str: fileContent} of
     Left e -> do

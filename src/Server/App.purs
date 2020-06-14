@@ -49,9 +49,8 @@ app env (Request req) f = case parse pageRoutes req.rawPathInfo of
     PackageGraph package -> do
       let
         p = un Package package
-        storage = "storage"
-        dotFile = Path.concat [storage, p <> ".dot"]
-        svgFile = Path.concat [storage, p <> ".svg"]
+        dotFile = Path.concat ["dist", "dotFiles", p <> ".dot"]
+        svgFile = Path.concat ["dist", "images", p <> ".svg"]
       launchAff_ do
         unlessM (exists svgFile) do
           renderPackageGraph package env.packageGraph dotFile
