@@ -39,12 +39,16 @@ main = launchAff_ do
     Right a -> do
       liftEffect $ log "Successful parse. Now making graph."
       renderPackageGraph (Package "halogen-hooks") (mkPackageGraph a.result) "halogen-hooks-graph.dot"
-      -- let
-      --
-      --   env =
-      --     { result: a.result
-      --     , packageGraph: mkPackageGraph a.result
-      --     }
+      let
+        env =
+          { allInfo: a.result
+          , packageGraph: mkPackageGraph a.result
+          }
+        settings = defaultSettings
+          { beforeMainLoop = log $ "Open file via" <> baseUrl
+          , port = port
+          }
+      liftEffect $ void $ runSettings settings (app env)
 
 mkErrorMessage :: ParseError -> String
 mkErrorMessage (ParseError str) =

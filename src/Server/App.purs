@@ -3,23 +3,31 @@ module Server.App where
 import Prelude
 
 import Data.Argonaut.Core (Json, stringify)
-import Data.Array.NonEmpty (NonEmptyArray)
 import Data.Codec as Codec
+import Data.Codec.Argonaut as CA
 import Data.Either (Either(..))
+import Data.HashMap (HashMap, keys)
+import Data.Interpolate (i)
 import Data.Maybe (Maybe(..))
+import Data.Newtype (un)
 import Data.Tuple.Nested ((/\))
+import Effect.Aff (launchAff_)
+import Effect.Class (liftEffect)
 import Network.HTTP.Types (status200, status404)
 import Network.HTTP.Types.Header (hContentType)
 import Network.Wai (Application, Request(..), responseFile, responseStr)
+import Node.FS.Aff (exists)
+import Node.Path as Path
 import Routing.Duplex (parse)
-import Shared.Codec (moduleCodec, nonEmptyArrayCodec, packageCodec)
+import Server.ChildProcess (execSync)
+import Server.DotRenderer (renderPackageGraph)
+import Shared.Codec (moduleCodec, packageCodec)
 import Shared.Routes (PageRoute(..), pageRoutes)
-import Shared.Types (AllInfo, Module, Package)
+import Shared.Types (Module, ModuleInfo, Package(..))
 
 type Env =
-  { modNames :: NonEmptyArray Module
-  , packages :: NonEmptyArray Package
-  , allInfo :: NonEmptyArray AllInfo
+  { allInfo :: HashMap Module ModuleInfo
+  , packageGraph :: HashMap Package (Array Package)
   }
 
 app :: Env -> Application
@@ -39,14 +47,24 @@ app env (Request req) f = case parse pageRoutes req.rawPathInfo of
       f $ responseStr status200 [(hContentType /\ "application/json")] $
         stringify encodePackageList
     PackageGraph package -> do
-      f $ responseStr status200 [(hContentType /\ "application/json")] "Not yet implemented."
+      let
+        p = un Package package
+        storage = "storage"
+        dotFile = Path.concat [storage, p <> ".dot"]
+        svgFile = Path.concat [storage, p <> ".svg"]
+      launchAff_ do
+        unlessM (exists svgFile) do
+          renderPackageGraph package env.packageGraph dotFile
+          liftEffect $ execSync (i "dot -Tsvg -o "svgFile" "dotFile)
+
+        liftEffect $ f $ responseFile status200 [(hContentType /\ "image/svg+xml")] svgFile Nothing
   Left _ -> do
     f $ responseStr status404 [(hContentType /\ "text/plain")] "File not found."
   where
     encodedModuleList :: Json
     encodedModuleList =
-      Codec.encode (nonEmptyArrayCodec moduleCodec) env.modNames
+      Codec.encode (CA.array moduleCodec) $ keys env.allInfo
 
     encodePackageList :: Json
     encodePackageList =
-      Codec.encode (nonEmptyArrayCodec packageCodec) env.packages
+      Codec.encode (CA.array packageCodec) $ keys env.packageGraph
