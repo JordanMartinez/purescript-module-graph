@@ -6,36 +6,38 @@ import Affjax (printError)
 import Affjax as AX
 import Affjax.ResponseFormat as AXRF
 import Affjax.StatusCode (StatusCode(..))
-import Data.Array (cons, foldl)
+import DOM.HTML.Indexed.InputType (InputType(..))
+import Data.Array (mapWithIndex, unsafeIndex)
 import Data.Codec (decode)
+import Data.Codec.Argonaut (array, printJsonDecodeError)
 import Data.Either (Either(..))
-import Data.Foldable (class Foldable)
 import Data.HTTP.Method (Method(..))
-import Data.List.Types (NonEmptyList)
+import Data.Interpolate (i)
 import Data.Maybe (Maybe(..))
-import Data.Monoid (power)
 import Data.Newtype (un)
-import Data.String.CodeUnits (drop, take)
+import Data.Symbol (SProxy(..))
 import Data.Tuple.Nested ((/\))
 import Effect (Effect)
-import Effect.Aff (Aff, Milliseconds(..), delay)
+import Effect.Aff (Aff, Milliseconds(..))
 import Halogen (liftAff)
 import Halogen as H
 import Halogen.Aff (awaitBody, runHalogenAff)
 import Halogen.HTML as HH
+import Halogen.HTML.Properties as HP
 import Halogen.Hooks (useLifecycleEffect, useState)
 import Halogen.Hooks as Hooks
 import Halogen.Hooks.Extra.Hooks (useEvent)
 import Halogen.VDom.Driver (runUI)
+import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RD
+import Partial.Unsafe (unsafePartial)
 import Routing.Duplex (print)
 import Select (SelectEvent(..), SelectReturn(..), selectInput, useSelect)
 import Select as Select
-import Shared.Codec (nonEmptyArrayCodec, packageCodec)
+import Shared.Codec (packageCodec)
 import Shared.Config (baseUrl)
 import Shared.Routes (PageRoute(..), pageRoutes)
-import Shared.Types (Module, Package(..))
-import Text.Parsing.StringParser (ParseError(..), unParser)
+import Shared.Types (Package(..))
 
 main :: Effect Unit
 main = runHalogenAff do
@@ -45,6 +47,39 @@ main = runHalogenAff do
 rootComponent :: forall q i o. H.Component HH.HTML q i o Aff
 rootComponent = Hooks.component \_ _ -> Hooks.do
   content /\ contentId <- useState $ RD.NotAsked
+  useLifecycleEffect do
+    reqResult <- liftAff $ AX.request $ AX.defaultRequest
+          { url = baseUrl <> (print pageRoutes PackageList)
+          , method = Left GET
+          , responseFormat = AXRF.json
+          }
+    Hooks.put contentId case reqResult of
+      Right response | response.status == StatusCode 200 ->
+        case decode (array packageCodec) response.body of
+          Left e -> Failure $ printJsonDecodeError e
+          Right a -> Success a
+      Right response -> do
+        Failure (i "Status code: "(show response.status)": "(show response.statusText))
+      Left e -> do
+        Failure $ printError e
+    pure Nothing
+
+  Hooks.pure case content of
+    RD.NotAsked ->
+      HH.div_
+        [ HH.text "Loaded page. Not yet loaded package array." ]
+    RD.Failure msg ->
+      HH.div_
+        [ HH.text $ "Error: " <> msg ]
+    RD.Loading ->
+      HH.div_
+        [ HH.text "loaded package array. Please wait." ]
+    RD.Success packages ->
+      HH.slot (SProxy ::_"view") unit viewComponent packages (const Nothing)
+
+viewComponent :: forall q o. H.Component HH.HTML q (Array Package) o Aff
+viewComponent = Hooks.component \_ array -> Hooks.do
+  currentPackage /\ currentPackageId <- useState Nothing
   packageEvents <- useEvent
   SelectReturn packageSelect <- useSelect $ selectInput
     { inputType = Select.Text
@@ -55,31 +90,34 @@ rootComponent = Hooks.component \_ _ -> Hooks.do
   useLifecycleEffect do
     void $ packageEvents.setCallback $ Just \_ i -> case i of
       NewSearch str -> do
-        H.put contentId RD.Loading
-        reqResult <- liftAff $ AX.request $ AX.defaultRequest
-              { url = baseUrl <> print pageRoutes $ Package str
-              , method = Left GET
-              , responseFormat = AXRF.json
-              }
-        case reqResult of
-          Right response | response.statusCode == StatusCode 200 -> do
-            let packageList = decode (nonEmptyArrayCodec packageCodec) respone.body
-            H.put contentId $ Success packageList
-          Right response -> do
-            H.put contentID $ Falure $ "Status code: " <> show response.statusCode
-          Left e -> do
-            H.put contentId $ Failure $ "Error: " <> printError e
+        Hooks.put currentPackageId $ Just $ Package str
 
-      SelectedIndex i -> do
-        pure unit
+      SelectedIndex idx -> do
+        let
+          selectedPackage = unsafePartial (unsafeIndex array idx)
+        Hooks.put currentPackageId $ Just selectedPackage
       _ -> do
         pure unit
 
     pure Nothing
 
   Hooks.pure $
-    HH.div_
-      [ HH.text "To implement" ]
+      HH.div_
+        [ HH.input (packageSelect.setInputProps [ HP.type_ InputText ])
+        , HH.div
+          (packageSelect.setContainerProps [])
+          (array # mapWithIndex \i next ->
+            HH.div
+              (packageSelect.setItemProps i [])
+              [ HH.text $ un Package next ]
+          )
+        , case currentPackage of
+            Just p ->
+              HH.img
+                [ HP.src (i "./images/"(un Package p)".svg") ]
+            Nothing ->
+              HH.text $ "Selected package is not a valid package..."
+        ]
 
 -- displayError :: forall q o. H.Component HH.HTML q String o Aff
 -- displayError = Hooks.component \_ errorMessage -> Hooks.do
