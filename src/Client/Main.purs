@@ -6,6 +6,7 @@ import Affjax (printError)
 import Affjax as AX
 import Affjax.ResponseFormat as AXRF
 import Affjax.StatusCode (StatusCode(..))
+import Client.Utils (whenElem)
 import DOM.HTML.Indexed.InputType (InputType(..))
 import Data.Array (mapWithIndex, unsafeIndex)
 import Data.Codec (decode)
@@ -13,13 +14,14 @@ import Data.Codec.Argonaut (array, printJsonDecodeError)
 import Data.Either (Either(..))
 import Data.HTTP.Method (Method(..))
 import Data.Interpolate (i)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), maybe)
+import Data.Monoid (guard)
 import Data.Newtype (un)
 import Data.Symbol (SProxy(..))
 import Data.Tuple.Nested ((/\))
 import Effect (Effect)
 import Effect.Aff (Aff, Milliseconds(..))
-import Halogen (liftAff)
+import Halogen (ClassName(..), liftAff)
 import Halogen as H
 import Halogen.Aff (awaitBody, runHalogenAff)
 import Halogen.HTML as HH
@@ -32,7 +34,7 @@ import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RD
 import Partial.Unsafe (unsafePartial)
 import Routing.Duplex (print)
-import Select (SelectEvent(..), SelectReturn(..), selectInput, useSelect)
+import Select (SelectEvent(..), SelectReturn(..), Visibility(..), selectInput, useSelect)
 import Select as Select
 import Shared.Codec (packageCodec)
 import Shared.Config (baseUrl)
@@ -80,43 +82,50 @@ rootComponent = Hooks.component \_ _ -> Hooks.do
 viewComponent :: forall q o. H.Component HH.HTML q (Array Package) o Aff
 viewComponent = Hooks.component \_ array -> Hooks.do
   currentPackage /\ currentPackageId <- useState Nothing
-  packageEvents <- useEvent
+  indexChangeEvents <- useEvent
   SelectReturn packageSelect <- useSelect $ selectInput
-    { inputType = Select.Text
-    , debounceTime = Just $ Milliseconds 300.0
-    , pushNewSearch = packageEvents.push <<< NewSearch
-    , pushSelectedIdxChanged = packageEvents.push <<< SelectedIndex
+    { inputType = Select.Toggle
+    , pushSelectedIdxChanged = indexChangeEvents.push
     }
   useLifecycleEffect do
-    void $ packageEvents.setCallback $ Just \_ i -> case i of
-      NewSearch str -> do
-        Hooks.put currentPackageId $ Just $ Package str
-
-      SelectedIndex idx -> do
-        let
-          selectedPackage = unsafePartial (unsafeIndex array idx)
-        Hooks.put currentPackageId $ Just selectedPackage
-      _ -> do
-        pure unit
+    void $ indexChangeEvents.setCallback $ Just \_ idx -> do
+      let
+        selectedPackage = unsafePartial (unsafeIndex array idx)
+      Hooks.put currentPackageId $ Just selectedPackage
+      packageSelect.setVisibility Off
 
     pure Nothing
 
   Hooks.pure $
       HH.div_
-        [ HH.input (packageSelect.setInputProps [ HP.type_ InputText ])
-        , HH.div
-          (packageSelect.setContainerProps [])
-          (array # mapWithIndex \i next ->
-            HH.div
-              (packageSelect.setItemProps i [])
-              [ HH.text $ un Package next ]
-          )
-        , case currentPackage of
+        [ case currentPackage of
             Just p ->
               HH.img
                 [ HP.src (i "./images/"(un Package p)".svg") ]
             Nothing ->
               HH.text $ "Selected package is not a valid package..."
+        , HH.div_
+          [ HH.button
+            (packageSelect.setToggleProps
+              [ HP.class_ $ ClassName "Typeahead-searchbar" ])
+            [ HH.text (maybe "" (un Package) currentPackage) ]
+          , whenElem (packageSelect.visibility == On) \_ ->
+            HH.div
+              (packageSelect.setContainerProps
+                [ HP.class_ $ ClassName "Typeahead-container"
+                ])
+              (array # mapWithIndex \i next ->
+                HH.div
+                  (packageSelect.setItemProps i
+                    [ HP.classes $ map ClassName
+                      [ "Typeahead-item"
+                      , "Typeahead-item--selected"
+                          # (guard (packageSelect.highlightedIndex == Just i))
+                      ]
+                    ])
+                  [ HH.text $ un Package next ]
+              )
+          ]
         ]
 
 -- displayError :: forall q o. H.Component HH.HTML q String o Aff

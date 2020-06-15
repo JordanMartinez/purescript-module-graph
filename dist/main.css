@@ -1,0 +1,15 @@
+.Typeahead-searchbar {
+
+}
+
+.Typeahead-container {
+  visibility: hidden;
+}
+
+.Typeahead-container-visible {
+  visibility: visible;
+}
+
+.Typeahead-item {
+
+}
