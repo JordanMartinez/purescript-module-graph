@@ -97,13 +97,7 @@ viewComponent = Hooks.component \_ array -> Hooks.do
 
   Hooks.pure $
       HH.div_
-        [ case currentPackage of
-            Just p ->
-              HH.img
-                [ HP.src $ print pageRoutes $ PackageGraph p ]
-            Nothing ->
-              HH.text $ "Selected package is not a valid package..."
-        , HH.div_
+        [ HH.div_
           [ HH.button
             (packageSelect.setToggleProps
               [ HP.class_ $ ClassName "Typeahead-searchbar" ])
@@ -124,5 +118,11 @@ viewComponent = Hooks.component \_ array -> Hooks.do
                     ])
                   [ HH.text $ un Package next ]
               )
+          , case currentPackage of
+              Just p ->
+                HH.img
+                  [ HP.src $ print pageRoutes $ PackageGraph p ]
+              Nothing ->
+                HH.text $ "Selected package is not a valid package..."
           ]
         ]
