@@ -127,35 +127,3 @@ viewComponent = Hooks.component \_ array -> Hooks.do
               )
           ]
         ]
-
--- displayError :: forall q o. H.Component HH.HTML q String o Aff
--- displayError = Hooks.component \_ errorMessage -> Hooks.do
---   Hooks.pure $
---     HH.h1_
---       [ HH.text $ "Error: " <> errorMessage ]
---
--- displayGraph :: forall q o. H.Component HH.HTML q (NonEmptyList Module) o Aff
--- displayGraph = Hooks.component \_ moduleList -> Hooks.do
---   Hooks.pure $
---     HH.div_
---       [ HH.h1_ [ HH.text "Module List" ]
---       , HH.div_ $ mapToArray renderModule moduleList
---
---       ]
---   where
---     mapToArray :: forall f a b. Foldable f => (a -> b) -> f a -> Array b
---     mapToArray f =
---       foldl (\acc next -> f next `cons` acc) []
---
---     renderModule :: Module -> H.ComponentHTML _ _ Aff
---     renderModule (Module rec) = let info = un ModuleInfo rec.info in
---       HH.div_
---         [ HH.h2_
---           [ HH.text rec.name ]
---         , HH.p_ [ HH.text $ un Path info.path ]
---         , HH.ul_ $ mapToArray renderDependency info.depends
---         ]
---
---     renderDependency :: Dependency -> H.ComponentHTML _ _ Aff
---     renderDependency (Dependency dep) =
---       HH.li_ [ HH.text dep ]
