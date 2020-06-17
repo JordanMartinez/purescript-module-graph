@@ -101,7 +101,7 @@ viewComponent = Hooks.component \_ array -> Hooks.do
         [ case currentPackage of
             Just p ->
               HH.img
-                [ HP.src (i "./images/"(un Package p)".svg") ]
+                [ HP.src $ print pageRoutes $ PackageGraph p ]
             Nothing ->
               HH.text $ "Selected package is not a valid package..."
         , HH.div_
