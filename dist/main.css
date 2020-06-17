@@ -1,15 +1,25 @@
 .Typeahead-searchbar {
-
+  background-color: lightblue;
+  padding: 0.3em;
+  width: 30ch;
+  cursor: pointer;
 }
 
 .Typeahead-container {
-  visibility: hidden;
-}
-
-.Typeahead-container-visible {
-  visibility: visible;
+  overflow: auto;
+  position: relative;
+  width: 30ch;
+  height: 10em;
+  cursor: pointer;
+  border: 2px lightblue solid;
 }
 
 .Typeahead-item {
+  background-color: white;
+  color: black;
+}
 
+.Typeahead-item--selected {
+  background-color: blue;
+  color: white;
 }
