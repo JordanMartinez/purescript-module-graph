@@ -9,7 +9,6 @@
 /.psa*
 /.spago
 /dist/app.js
-module-graph.json
 
 dist/dotFiles/*
 dist/images/*
