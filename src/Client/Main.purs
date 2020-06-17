@@ -107,7 +107,7 @@ viewComponent = Hooks.component \_ array -> Hooks.do
           [ HH.button
             (packageSelect.setToggleProps
               [ HP.class_ $ ClassName "Typeahead-searchbar" ])
-            [ HH.text (maybe "" (un Package) currentPackage) ]
+            [ HH.text (maybe "Select..." (un Package) currentPackage) ]
           , whenElem (packageSelect.visibility == On) \_ ->
             HH.div
               (packageSelect.setContainerProps
