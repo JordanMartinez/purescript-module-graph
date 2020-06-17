@@ -12,6 +12,7 @@ import Shared.Types (Module, Package)
 data PageRoute
   = Home
   | HalogenFile
+  | MainCss
   -- | Gets a list of all modules in the package set. Mainly for
   -- | listing the modules one could query in a dropdown or something.
   | ModuleList
@@ -30,6 +31,7 @@ pageRoutes :: RouteDuplex' PageRoute
 pageRoutes = root $ sum
   { "Home": noArgs
   , "HalogenFile": "app.js" / noArgs
+  , "MainCss" : "main.css" / noArgs
   , "ModuleList": "api" / "modules" / noArgs
   , "ModuleGraph": "api" / "modules" / module'
   , "PackageList": "api" / "packages" / noArgs

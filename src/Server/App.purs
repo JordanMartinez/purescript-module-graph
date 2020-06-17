@@ -38,6 +38,8 @@ app env (Request req) f = case parse pageRoutes req.rawPathInfo of
       f $ responseFile status200 [(hContentType /\ "text/html")] "./dist/index.html" Nothing
     HalogenFile -> do
       f $ responseFile status200 [(hContentType /\ "text/javascript")] "./dist/app.js" Nothing
+    MainCss -> do
+      f $ responseFile status200 [(hContentType /\ "text/css")] "./dist/main.css" Nothing
     ModuleList -> do
       f $ responseStr status200 [(hContentType /\ "application/json")] $
         stringify encodedModuleList
