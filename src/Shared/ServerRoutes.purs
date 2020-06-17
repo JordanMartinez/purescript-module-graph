@@ -9,7 +9,7 @@ import Routing.Duplex.Generic (noArgs, sum)
 import Routing.Duplex.Generic.Syntax ((/))
 import Shared.Types (Module, Package)
 
-data PageRoute
+data ServerRoute
   = Home
   | HalogenFile
   | MainCss
@@ -24,11 +24,11 @@ data PageRoute
   -- | Gets the dependency and dependent graph of the package
   | PackageGraph Package
 
-derive instance eqPageRoute :: Eq PageRoute
-derive instance genericPageRoute :: Generic PageRoute _
+derive instance eqServerRoute :: Eq ServerRoute
+derive instance genericServerRoute :: Generic ServerRoute _
 
-pageRoutes :: RouteDuplex' PageRoute
-pageRoutes = root $ sum
+serverRoutes :: RouteDuplex' ServerRoute
+serverRoutes = root $ sum
   { "Home": noArgs
   , "HalogenFile": "app.js" / noArgs
   , "MainCss" : "main.css" / noArgs

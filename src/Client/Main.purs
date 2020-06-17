@@ -37,7 +37,7 @@ import Select (SelectReturn(..), Visibility(..), selectInput, useSelect)
 import Select as Select
 import Shared.Codec (packageCodec)
 import Shared.Config (baseUrl)
-import Shared.Routes (PageRoute(..), pageRoutes)
+import Shared.Routes (ServerRoute(..), serverRoutes)
 import Shared.Types (Package(..))
 
 main :: Effect Unit
@@ -50,7 +50,7 @@ rootComponent = Hooks.component \_ _ -> Hooks.do
   content /\ contentId <- useState $ RD.NotAsked
   useLifecycleEffect do
     reqResult <- liftAff $ AX.request $ AX.defaultRequest
-          { url = baseUrl <> (print pageRoutes PackageList)
+          { url = baseUrl <> (print serverRoutes PackageList)
           , method = Left GET
           , responseFormat = AXRF.json
           }
@@ -123,7 +123,7 @@ viewComponent = Hooks.component \_ array -> Hooks.do
         , case currentPackage of
             Just p ->
               HH.img
-                [ HP.src $ print pageRoutes $ PackageGraph p ]
+                [ HP.src $ print serverRoutes $ PackageGraph p ]
             Nothing ->
               HH.p
                 [ HP.class_ (ClassName "invalid-search-label") ]

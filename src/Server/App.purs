@@ -23,7 +23,7 @@ import Routing.Duplex (parse)
 import Server.ChildProcess (execSync)
 import Server.DotRenderer (renderPackageGraph)
 import Shared.Codec (moduleCodec, packageCodec)
-import Shared.Routes (PageRoute(..), pageRoutes)
+import Shared.Routes (ServerRoute(..), serverRoutes)
 import Shared.Types (Module, ModuleInfo, Package(..))
 
 type Env =
@@ -32,7 +32,7 @@ type Env =
   }
 
 app :: Env -> Application
-app env (Request req) f = case parse pageRoutes req.rawPathInfo of
+app env (Request req) f = case parse serverRoutes req.rawPathInfo of
   Right route -> case route of
     Home -> do
       f $ responseFile status200 [(hContentType /\ "text/html")] "./dist/index.html" Nothing
