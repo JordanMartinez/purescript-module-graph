@@ -13,6 +13,7 @@ import Data.Newtype (un)
 import Data.Tuple.Nested ((/\))
 import Effect.Aff (launchAff_)
 import Effect.Class (liftEffect)
+import Effect.Console (log)
 import Network.HTTP.Types (status200, status404)
 import Network.HTTP.Types.Header (hContentType)
 import Network.Wai (Application, Request(..), responseFile, responseStr)
@@ -58,6 +59,7 @@ app env (Request req) f = case parse pageRoutes req.rawPathInfo of
 
         liftEffect $ f $ responseFile status200 [(hContentType /\ "image/svg+xml")] svgFile Nothing
   Left _ -> do
+    log (i "Resource does not exist: "req.rawPathInfo)
     f $ responseStr status404 [(hContentType /\ "text/plain")] "File not found."
   where
     encodedModuleList :: Json
