@@ -1,11 +1,17 @@
+.Typeahead-container {
+  position: sticky;
+  top: 0;
+}
+
 .Typeahead-searchbar {
+  display: block;
   background-color: lightblue;
   padding: 0.3em;
   width: 30ch;
   cursor: pointer;
 }
 
-.Typeahead-container {
+.Typeahead-item-container {
   overflow: auto;
   position: relative;
   width: 30ch;
@@ -22,4 +28,8 @@
 .Typeahead-item--selected {
   background-color: blue;
   color: white;
+}
+
+.invalid-search-label {
+  display: block;
 }

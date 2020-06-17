@@ -97,7 +97,8 @@ viewComponent = Hooks.component \_ array -> Hooks.do
 
   Hooks.pure $
       HH.div_
-        [ HH.div_
+        [ HH.div
+          [ HP.class_ $ ClassName "Typeahead-container" ]
           [ HH.button
             (packageSelect.setToggleProps
               [ HP.class_ $ ClassName "Typeahead-searchbar" ])
@@ -105,7 +106,7 @@ viewComponent = Hooks.component \_ array -> Hooks.do
           , whenElem (packageSelect.visibility == On) \_ ->
             HH.div
               (packageSelect.setContainerProps
-                [ HP.class_ $ ClassName "Typeahead-container"
+                [ HP.class_ $ ClassName "Typeahead-item-container"
                 ])
               (array # mapWithIndex \i next ->
                 HH.div
@@ -118,11 +119,13 @@ viewComponent = Hooks.component \_ array -> Hooks.do
                     ])
                   [ HH.text $ un Package next ]
               )
-          , case currentPackage of
-              Just p ->
-                HH.img
-                  [ HP.src $ print pageRoutes $ PackageGraph p ]
-              Nothing ->
-                HH.text $ "Selected package is not a valid package..."
           ]
+        , case currentPackage of
+            Just p ->
+              HH.img
+                [ HP.src $ print pageRoutes $ PackageGraph p ]
+            Nothing ->
+              HH.p
+                [ HP.class_ (ClassName "invalid-search-label") ]
+                [ HH.text "Selected package is not a valid package..."]
         ]
