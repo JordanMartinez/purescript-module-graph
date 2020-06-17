@@ -3,7 +3,7 @@ module Server.DotRenderer where
 import Prelude
 
 import Control.Alt ((<|>))
-import Data.Array (catMaybes, elemIndex, filter, foldl, nub, snoc)
+import Data.Array (catMaybes, elemIndex, filter, foldl, nub, snoc, sort)
 import Data.Foldable (class Foldable)
 import Data.FoldableWithIndex (foldlWithIndex)
 import Data.HashMap (HashMap, lookup)
@@ -53,8 +53,8 @@ renderPackageGraph :: Package -> HashMap Package (Array Package) -> String -> Af
 renderPackageGraph p packageMap file = do
   let
     mainPkg = quotePackage p
-    dependencies = fromMaybe [] $ lookup p packageMap
-    dependents = foldlWithIndex extractDependents [] packageMap
+    dependencies = sort $ fromMaybe [] $ lookup p packageMap
+    dependents = sort $ foldlWithIndex extractDependents [] packageMap
 
     separateElemsBySpaces arrayOfValues =
       intercalate0 " " quotePackage arrayOfValues

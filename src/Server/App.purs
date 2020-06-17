@@ -3,6 +3,7 @@ module Server.App where
 import Prelude
 
 import Data.Argonaut.Core (Json, stringify)
+import Data.Array (sort)
 import Data.Codec as Codec
 import Data.Codec.Argonaut as CA
 import Data.Either (Either(..))
@@ -70,4 +71,4 @@ app env (Request req) f = case parse serverRoutes req.rawPathInfo of
 
     encodePackageList :: Json
     encodePackageList =
-      Codec.encode (CA.array packageCodec) $ keys env.packageGraph
+      Codec.encode (CA.array packageCodec) $ sort $ keys env.packageGraph
