@@ -7,7 +7,6 @@ import Affjax as AX
 import Affjax.ResponseFormat as AXRF
 import Affjax.StatusCode (StatusCode(..))
 import Client.Utils (whenElem)
-import DOM.HTML.Indexed.InputType (InputType(..))
 import Data.Array (mapWithIndex, unsafeIndex)
 import Data.Codec (decode)
 import Data.Codec.Argonaut (array, printJsonDecodeError)
@@ -20,7 +19,7 @@ import Data.Newtype (un)
 import Data.Symbol (SProxy(..))
 import Data.Tuple.Nested ((/\))
 import Effect (Effect)
-import Effect.Aff (Aff, Milliseconds(..))
+import Effect.Aff (Aff)
 import Halogen (ClassName(..), liftAff)
 import Halogen as H
 import Halogen.Aff (awaitBody, runHalogenAff)
@@ -34,7 +33,7 @@ import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RD
 import Partial.Unsafe (unsafePartial)
 import Routing.Duplex (print)
-import Select (SelectEvent(..), SelectReturn(..), Visibility(..), selectInput, useSelect)
+import Select (SelectReturn(..), Visibility(..), selectInput, useSelect)
 import Select as Select
 import Shared.Codec (packageCodec)
 import Shared.Config (baseUrl)
